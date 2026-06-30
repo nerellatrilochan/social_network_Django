@@ -1,0 +1,68 @@
+lint.select = [
+    "ALL",
+]
+line-length = 79
+ignore = [
+    "D",
+    "FA",
+    "ANN",
+    "TD",
+    "FIX",
+    "FBT",
+    "I",
+    "DTZ005",
+    "DTZ001",
+    "E501",
+    "G004",
+    "B904",
+    "A003",
+    "W191",
+    "FBT001",
+    "TRY200",
+    "S311",
+    "BLE001",
+    "S101",
+    "Q000",
+    "RET504",
+    "RUF012",
+    "T201",
+    "DJ001",
+    "PLR0911",
+    "N818",
+    "RUF005",
+    "RET502",
+    "RET503",
+    "DJ008",
+    "COM812"
+]
+force-exclude = true
+ignore-init-module-imports = true
+required-version = "0.1.2"
+
+[lint.per-file-ignores]
+"__init__.py" = ["E402"]
+"*/views/*.py" = ["ALL"]
+"*/conftest.py" = ["ALL"]
+"*/build/*" = ["ALL"]
+"*/migrations/*" = ["ALL"]
+"*/tests/*.py" = ["ALL"]
+"*/tests/*snap_*.py" = ["ALL"]
+"*/settings/*" = ["ALL"]
+"*/contants/*" = ["ALL"]
+"setup.py" = ["ALL"]
+"get_env_vars.py" = ["ALL"]
+"manage.py" = ["ALL"]
+
+[lint.flake8-annotations]
+suppress-dummy-args = true
+suppress-none-returning = true
+
+
+[lint.pylint]
+max-args = 8
+
+[lint.isort]
+case-sensitive = true
+combine-as-imports = true
+lines-between-types = 1
+

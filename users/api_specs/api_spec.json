@@ -1,0 +1,452 @@
+{
+  "swagger": "2.0",
+  "host": "127.0.0.1:8000",
+  "basePath": "/api/posts_auth/",
+  "info": {
+    "version": "1.0.0",
+    "title": "posts_auth",
+    "description": "posts_auth"
+  },
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "securityDefinitions": {
+    "oauth": {
+      "tokenUrl": "http://auth.ibtspl.com/oauth2/",
+      "flow": "password",
+      "scopes": {
+        "read": "read users",
+        "write": "create users",
+        "update": "update users",
+        "delete": "delete users"
+      },
+      "type": "oauth2"
+    }
+  },
+  "security": [],
+  "definitions": {
+    "HttpResponseAndStatusCodeDefinition": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "type": "string"
+        },
+        "http_status_code": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "required": [
+        "response",
+        "http_status_code"
+      ]
+    },
+    "UserLoginResponseDef": {
+      "type": "object",
+      "properties": {
+        "access_token": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "refresh_token": {
+          "type": "string"
+        },
+        "expires_in": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "required": [
+        "access_token"
+      ]
+    },
+    "UserDetailsDef": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string"
+        },
+        "phone_number": {
+          "type": "string"
+        },
+        "country_code": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "profile_pic_url": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "dob": {
+          "type": "string"
+        },
+        "gender": {
+          "type": "string"
+        },
+        "is_phone_number_verified": {
+          "type": "boolean"
+        },
+        "is_email_verified": {
+          "type": "boolean"
+        },
+        "language_preference": {
+          "type": "string"
+        },
+        "cover_page_url": {
+          "type": "string"
+        },
+        "age": {
+          "type": "integer"
+        },
+        "state_of_residence": {
+          "type": "string"
+        },
+        "occupation": {
+          "type": "string"
+        },
+        "i_want_to_receive_updates_directly_on_whatsapp": {
+          "type": "string"
+        },
+        "last_name": {
+          "type": "string"
+        },
+        "accepted_tnc": {
+          "type": "boolean"
+        },
+        "pincode": {
+          "type": "string"
+        },
+        "age_group": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "parameters": {
+    "LoginWithCodeParameter": {
+      "name": "LoginWithCode",
+      "description": "Login With Code",
+      "in": "body",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "client_id",
+          "code"
+        ]
+      }
+    },
+    "GetAuthTokensParameter": {
+      "name": "GetAccessTokenAndRefreshToken",
+      "description": "Get AccessToken And RefreshToken",
+      "in": "body",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "refresh_token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "refresh_token"
+        ]
+      }
+    },
+    "RefreshAuthTokenParameters": {
+      "description": "Refresh Auth Tokens",
+      "in": "body",
+      "name": "RefreshAuthTokenParameters",
+      "required": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "refresh_token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "refresh_token"
+        ]
+      }
+    }
+  },
+  "responses": {
+    "LoginWithCodeResponse": {
+      "description": "Success response for login with code",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "refresh_token": {
+            "type": "string"
+          },
+          "expires_in": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "access_token",
+          "refresh_token"
+        ]
+      }
+    },
+    "InvalidLoginResponse": {
+      "description": "Bad request Response",
+      "schema": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/HttpResponseAndStatusCodeDefinition"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "res_status": {
+                "type": "string",
+                "enum": [
+                  "INVALID_CREDENTIALS",
+                  "USER_ACCOUNT_IS_DEACTIVATED"
+                ]
+              }
+            },
+            "required": [
+              "res_status"
+            ]
+          }
+        ]
+      }
+    },
+    "RefreshAuthTokensBadRequestResponse": {
+      "description": "Bad request Response",
+      "schema": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/HttpResponseAndStatusCodeDefinition"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "res_status": {
+                "type": "string",
+                "enum": [
+                  "INVALID_ACCESS_TOKEN",
+                  "REFRESH_TOKEN_EXPIRED"
+                ]
+              }
+            },
+            "required": [
+              "res_status"
+            ]
+          }
+        ]
+      }
+    },
+    "RefreshAuthTokensForbiddenRequestResponse": {
+      "description": "Bad request Response",
+      "schema": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/HttpResponseAndStatusCodeDefinition"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "res_status": {
+                "type": "string",
+                "enum": [
+                  "USER_ACCOUNT_IS_DEACTIVATED"
+                ]
+              }
+            },
+            "required": [
+              "res_status"
+            ]
+          }
+        ]
+      }
+    },
+    "UserLoginResponse": {
+      "description": "",
+      "schema": {
+        "$ref": "#/definitions/UserLoginResponseDef"
+      }
+    },
+    "RefreshAuthTokenNotFoundResponse": {
+      "description": "Bad request Response",
+      "schema": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/HttpResponseAndStatusCodeDefinition"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "res_status": {
+                "type": "string",
+                "enum": [
+                  "REFRESH_TOKEN_NOT_FOUND"
+                ]
+              }
+            },
+            "required": [
+              "res_status"
+            ]
+          }
+        ]
+      }
+    },
+    "GetUserProfileResponse": {
+      "description": "get user profile response",
+      "schema": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/UserDetailsDef"
+          }
+        ]
+      }
+    },
+    "GetUserProfileBadRequestResponses": {
+      "description": "Bad request Response",
+      "schema": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/HttpResponseAndStatusCodeDefinition"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "res_status": {
+                "type": "string",
+                "enum": [
+                  "INVALID_USER_ID",
+                  "INVALID_CLIENT_CREDENTIALS",
+                  "GET_USER_PROFILE_FAILED"
+                ]
+              }
+            },
+            "required": [
+              "res_status"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "paths": {
+    "/login/v1/": {
+      "post": {
+        "summary": "Login With Code",
+        "operationId": "login_with_code",
+        "parameters": [
+          {
+            "$ref": "#/parameters/LoginWithCodeParameter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/LoginWithCodeResponse"
+          },
+          "403": {
+            "$ref": "#/responses/InvalidLoginResponse"
+          }
+        }
+      }
+    },
+    "/logout_in_all_devices/v1/": {
+      "post": {
+        "summary": "Logout in All Devices API",
+        "description": "Logout in All Devices API",
+        "operationId": "logout_in_all_devices",
+        "security": [
+          {
+            "oauth": [
+              "read",
+              "write"
+            ]
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "success"
+          }
+        }
+      }
+    },
+    "/refresh_auth_tokens/v1/": {
+      "post": {
+        "summary": "Refresh Auth Tokens",
+        "description": "Returns auth tokens on success",
+        "operationId": "refresh_auth_tokens",
+        "parameters": [
+          {
+            "$ref": "#/parameters/RefreshAuthTokenParameters"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/UserLoginResponse"
+          },
+          "400": {
+            "$ref": "#/responses/RefreshAuthTokensBadRequestResponse"
+          },
+          "403": {
+            "$ref": "#/responses/RefreshAuthTokensForbiddenRequestResponse"
+          },
+          "404": {
+            "$ref": "#/responses/RefreshAuthTokenNotFoundResponse"
+          }
+        }
+      }
+    },
+    "/user/profile/v1/": {
+      "get": {
+        "summary": "get user profile",
+        "operationId": "get_user_profile",
+        "description": "get user profile",
+        "parameters": [],
+        "security": [
+          {
+            "oauth": [
+              "write",
+              "read"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetUserProfileResponse"
+          },
+          "400": {
+            "$ref": "#/responses/GetUserProfileBadRequestResponses"
+          }
+        }
+      }
+    }
+  }
+}

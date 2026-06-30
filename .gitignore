@@ -1,0 +1,55 @@
+# Pycharm
+.idea/
+.ipynb_checkpoints/
+
+# Vimg
+
+*~
+*.swp
+*.swo
+
+
+env_*
+
+# Basics
+*.pyc
+__pycache__
+# *.ipynb
+
+# Eclipse
+.project
+.pydevproject
+android_jars/
+.venv/
+venv/
+
+.coverage
+ipython/
+
+*.DS_Store
+
+media/
+
+mysite.log
+db.sqlite3
+*.ipynb
+
+*.fuse*
+virtual_environment/
+
+# Build Folders
+*/build/*
+
+# Docs Folders
+docs/*
+
+dist/
+*.egg-info
+
+*.aes
+
+doc_html/
+
+.specstory/*
+.history/*
+.vscode*

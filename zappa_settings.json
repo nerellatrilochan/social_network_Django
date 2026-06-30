@@ -1,0 +1,124 @@
+{
+  "alpha": {
+    "project_name": "social-network",
+    "s3_bucket": "nxtwave-common-backend-code-bucket",
+    "memory_size": 1024,
+    "api_name": "social-network",
+    "timeout_seconds": 900,
+    "aws_region": "ap-south-1",
+    "keep_warm": false,
+    "domain": "social-network-alpha.earlywave.in",
+    "certificate_arn": "arn:aws:acm:us-east-1:110916805156:certificate/e414cbad-3296-45a3-a5ae-340e0ed043b66",
+    "django_settings": "social_network.settings.alpha",
+    "cloudwatch_log_level": "INFO",
+    "cloudwatch_data_trace": true,
+    "cloudwatch_metrics_enabled": true,
+    "touch": false,
+    "exception_handler": "ib_sentry_wrapper.utils.zappa_sentry.capture_exceptions",
+    "runtime": "python3.12",
+    "manage_roles": true,
+    "lambda_architecture": "arm64",
+    "enable_lambda_event_type_based_log": true,
+    "vpc_config": {
+      "SubnetIds": [
+        "subnet-0efe73cd379e7600c",
+        "subnet-0df7c6d7a9f7e3a66"
+      ],
+      "SecurityGroupIds": [
+        "sg-02f779c7d3c90f1ec"
+      ]
+    }
+  },
+  "beta": {
+    "project_name": "social-network",
+    "s3_bucket": "nxtwave-common-backend-code-bucket",
+    "memory_size": 1024,
+    "api_name": "social-network",
+    "timeout_seconds": 900,
+    "aws_region": "ap-south-1",
+    "keep_warm": false,
+    "domain": "social-network-beta.earlywave.in",
+    "certificate_arn": "arn:aws:acm:us-east-1:110916805156:certificate/e414cbad-3296-45a3-a5ae-340e0ed043b66",
+    "django_settings": "social_network.settings.beta",
+    "cloudwatch_log_level": "INFO",
+    "cloudwatch_data_trace": true,
+    "cloudwatch_metrics_enabled": true,
+    "touch": false,
+    "exception_handler": "ib_sentry_wrapper.utils.zappa_sentry.capture_exceptions",
+    "runtime": "python3.12",
+    "manage_roles": true,
+    "lambda_architecture": "arm64",
+    "enable_lambda_event_type_based_log": true,
+    "vpc_config": {
+      "SubnetIds": [
+        "subnet-0efe73cd379e7600c",
+        "subnet-0df7c6d7a9f7e3a66"
+      ],
+      "SecurityGroupIds": [
+        "sg-02f779c7d3c90f1ec"
+      ]
+    }
+  },
+  "gamma": {
+    "project_name": "social-network",
+    "s3_bucket": "nxtwave-common-backend-code-bucket",
+    "memory_size": 1024,
+    "api_name": "social-network",
+    "timeout_seconds": 900,
+    "aws_region": "ap-south-1",
+    "keep_warm": false,
+    "django_settings": "social_network.settings.gamma",
+    "domain": "social-network-gamma.earlywave.in",
+    "certificate_arn": "arn:aws:acm:us-east-1:110916805156:certificate/e414cbad-3296-45a3-a5ae-340e0ed043b66",
+    "log_level": "INFO",
+    "cloudwatch_log_level": "INFO",
+    "cloudwatch_data_trace": true,
+    "cloudwatch_metrics_enabled": true,
+    "touch": false,
+    "exception_handler": "ib_sentry_wrapper.utils.zappa_sentry.capture_exceptions",
+    "runtime": "python3.12",
+    "manage_roles": true,
+    "lambda_architecture": "arm64",
+    "enable_lambda_event_type_based_log": true,
+    "vpc_config": {
+      "SubnetIds": [
+        "subnet-0efe73cd379e7600c",
+        "subnet-0df7c6d7a9f7e3a66"
+      ],
+      "SecurityGroupIds": [
+        "sg-02f779c7d3c90f1ec"
+      ]
+    }
+  },
+  "prod": {
+    "project_name": "social-network",
+    "s3_bucket": "nxtwave-common-backend-code-bucket",
+    "memory_size": 1024,
+    "api_name": "social-network",
+    "timeout_seconds": 900,
+    "aws_region": "ap-south-1",
+    "keep_warm": false,
+    "django_settings": "social_network.settings.prod",
+    "domain": "social-network-prod-apis.ccbp.in",
+    "certificate_arn": "arn:aws:acm:us-east-1:110916805156:certificate/e414cbad-3296-45a3-a5ae-340e0ed043b6",
+    "log_level": "INFO",
+    "cloudwatch_log_level": "INFO",
+    "cloudwatch_data_trace": true,
+    "cloudwatch_metrics_enabled": true,
+    "touch": false,
+    "exception_handler": "ib_sentry_wrapper.utils.zappa_sentry.capture_exceptions",
+    "runtime": "python3.12",
+    "manage_roles": true,
+    "lambda_architecture": "arm64",
+    "enable_lambda_event_type_based_log": true,
+    "vpc_config": {
+      "SubnetIds": [
+        "subnet-0efe73cd379e7600c",
+        "subnet-0df7c6d7a9f7e3a66"
+      ],
+      "SecurityGroupIds": [
+        "sg-02f779c7d3c90f1ec"
+      ]
+    }
+  }
+}

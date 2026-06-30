@@ -1,0 +1,45 @@
+{
+        "swagger": "2.0",
+        "host": "127.0.0.1:8000",
+        "basePath": "/api/fb_post/",
+        "info": {
+            "version": "1.0.0",
+            "title": "Simple API",
+            "description": "A simple API to learn how to write OpenAPI Specification"
+        },
+        "schemes": [
+            "http"
+        ],
+        "consumes": [
+            "application/json"
+        ],
+        "produces": [
+            "application/json"
+        ],
+        "securityDefinitions": {
+            "oauth": {
+                "tokenUrl": "http://auth.ibtspl.com/oauth2/",
+                "flow": "password",
+                "scopes": {
+                    "read": "read users",
+                    "write": "create users",
+                    "update": "update users",
+                    "delete": "delete users"
+                },
+                "type": "oauth2"
+            }
+        },
+        "security": [],
+        "definitions": {
+
+        },
+        "parameters": {
+
+        },
+        "responses": {
+
+        },
+        "paths": {
+        }
+    }
+    

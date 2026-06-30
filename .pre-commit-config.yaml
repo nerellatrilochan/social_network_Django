@@ -1,0 +1,23 @@
+repos:
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.1.2
+  hooks:
+    - id: ruff
+      args:
+        [
+          .
+        ]
+- repo: local
+  hooks:
+    - id: pylint
+      name: pylint
+      entry: pylint
+      language: system
+      types: [python]
+      stages: [pre-commit]
+      args:
+        [
+          "-rn",
+          "-sn",
+          "--rcfile=.pylintrc",
+        ]
