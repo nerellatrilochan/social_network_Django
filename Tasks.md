@@ -8,53 +8,55 @@
 7. Implement create_comment
 8. Implement react_to_post
 9. Implement delete_post
-10. Domain Overview
 
-You are building a subset of the Social Network application from Assignment 006. The full data model is described there — here you will expose five of its operations as REST APIs through DSU.
+# Domain Overview
 
-## The five endpoints you will implement:
+You are building a subset of the Social Network application. The full data model is described there — here you will expose five of its operations as REST APIs through DSU.
 
-| Operation        | HTTP Method + Path	                        | Key behaviour                                   |
-| `create_post`    | `POST` `/fb_post/create_post/v1/`	        | Returns `post_id`. Raises 400 for invalid user or empty content  |
-| `get_post`	   | `GET`  `/fb_post/get_post/v1/{post_id}/`   | Returns full post details with comments & reactions. Raises 404 for unknown post.  |
-| `create_comment` | `POST`  `/fb_post/create_comment/v1/`	   | Returns `comment_id`. Raises 400 for invalid user, post, or empty content. |
-| `react_to_post`  | `POST`  `/fb_post/react_to_post/v1/`	   | Toggle-react logic. Raises 400 for invalid user, post, or reaction type. | 
-| `delete_post`	| `DELETE` `/fb_post/delete_post/v1/{post_id}/` | 	Cascades delete. Raises 403 if user is not the post creator. |
+The five endpoints you will implement:
+
+|------------------|---------------------------------------------|-----------------------------------------------------------------------------------|
+| Operation        | HTTP Method + Path	                         | Key behaviour                                                                     |
+|------------------|---------------------------------------------|-----------------------------------------------------------------------------------|
+| `create_post`    | `POST /fb_post/create_post/v1/`	           | Returns `post_id`. Raises 400 for invalid user or empty content                   |
+| `get_post`	     | `GET /fb_post/get_post/v1/{post_id}/`       | Returns full post details with comments & reactions. Raises 404 for unknown post. |
+| `create_comment` | `POST /fb_post/create_comment/v1/`	         | Returns `comment_id`. Raises 400 for invalid user, post, or empty content.        |
+| `react_to_post`  | `POST /fb_post/react_to_post/v1/`	         | Toggle-react logic. Raises 400 for invalid user, post, or reaction type.          | 
+| `delete_post`	   | `DELETE /fb_post/delete_post/v1/{post_id}/` | 	Cascades delete. Raises 403 if user is not the post creator.                     |
+|------------------|---------------------------------------------|-----------------------------------------------------------------------------------|
 
 Reminder — full Clean Architecture flow in DSU:
-Every request travels: urls.py → view file → validator_class → api_wrapper → interactor → storage / presenter
-urls.py → view file(auto-gen) → validator_class → api_wrapper(you write) → interactor → storage presenter
+Every request travels: `urls.py → view file → validator_class → api_wrapper → interactor → storage / presenter`
+`urls.py → view file(auto-gen) → validator_class → api_wrapper(you write) → interactor → storage presenter`
 
 # Phase 1 — Setup
 
-## Task 1 - Scaffold & Register the DSU App
+## Task 1 : Scaffold & Register the DSU App
 Create the DSU project and app from scratch using the DSU management commands.
 
-- Run `python manage.py create_cleanapp fb_post -p social_network` to scaffold the app with a full Clean Architecture folder structure.
-- Open `settings/base_swagger_utils.py` and register the app in both required places:
-```
-# 1. In the INSTALLED_APPS / APPS list:
-"fb_post",
-
-# 2. In SWAGGER_UTILS["APPS"]:
-"fb_post": {
-    "prefix_url": "fb_post",
-},
-```
+- Set the settings module, then scaffold the app:
+                                                  ```
+                                                  export DJANGO_SETTINGS_MODULE=social_network.settings.local
+                                                  python manage.py create_cleanapp fb_post -p social_network
+                                                  ```
+- Open `settings/base_swagger_utils.py` and register the app in two places:
+                                                                            - Add `"fb_post"` to the `APPS` list.
+                                                                            - Add the following entry under `SWAGGER_UTILS["APPS"]`:
+                                                                                                                                    - "fb_post" : {"dsu_version": "1.0"},
 - Start the server and confirm Django starts without errors.
+
 Common mistake: Forgetting the second registration in `SWAGGER_UTILS["APPS"]`. If your endpoints don't appear after `build`, this is the first thing to check.
 
 ## Task 2 - Write the Social Network Models
-In `fb_post/models/` (or a single `models.py`), define the following models exactly as described in Assignment 006 — Task 1. Use the exact field and class names from the spec.
+In `fb_post/models/` (or a single `models.py`), define the following models. Use the exact field and class names from the spec.
 
 - User — `name` (CharField, max 100), `profile_pic`(TextField)
 - Post — `content` (max 1000), `posted_at` (DateTimeField, auto_now_add), `posted_by` (FK → User)
 - Comment — `content` (max 1000), `commented_at` (auto_now_add), `commented_by` (FK → User), `post` (FK → Post), `parent_comment` (nullable FK → self)
 - Reaction — `post` (nullable FK → Post), `comment` (nullable FK → Comment), `reaction` (CharField, max 100), `reacted_at`(auto_now), `reacted_by` (FK → User)
 - Write the reaction type choices as an enum in `fb_post/constants.py` : `WOW, LIT, LOVE, HAHA, THUMBS-UP, THUMBS-DOWN, ANGRY, SAD`
-Write the custom exceptions in `fb_post/exceptions.py` :
-`InvalidUserException, InvalidPostException, InvalidPostContent, InvalidCommentContent, InvalidReactionTypeException, UserCannotDeletePostException`
-Run `python manage.py makemigrations fb_post && python manage.py migrate` — confirm no errors.
+- Write the custom exceptions in `fb_post/exceptions.py` : `InvalidUserException, InvalidPostException, InvalidPostContent, InvalidCommentContent, InvalidReactionTypeException,UserCannotDeletePostException`                
+- Run `python manage.py makemigrations fb_post && python manage.py migrate` — confirm no errors.
 
 
 # Phase 2 - OpenAPI Spec + Build
@@ -62,9 +64,10 @@ Run `python manage.py makemigrations fb_post && python manage.py migrate` — co
 ## Task 3 - Write the OpenAPI Spec
 - Create `fb_post/api_specs/api_spec.json`. This file drives everything DSU generates — every `operationId` becomes a view folder.
 - You need to define all five endpoints. The scaffolds below show the structure — fill in the request/response schemas yourself.
-- DSU operationId naming convention: Use snake_case. DSU generates a folder `fb_post/views/<operationId>/` for each one.
 
-POST `/fb_post/create_post/v1/` 
+DSU operationId naming convention: Use snake_case. DSU generates a folder `fb_post/views/<operationId>/` for each one.
+
+`POST /fb_post/create_post/v1/` 
 
 Request Body
 {
@@ -82,7 +85,7 @@ Request Body
   "res_status": "INVALID_USER_EXCEPTION"
 }
 
-GET `/fb_post/get_post/v1/{post_id}/`
+`GET /fb_post/get_post/v1/{post_id}/`
 
 200 Response
 {
@@ -112,7 +115,7 @@ GET `/fb_post/get_post/v1/{post_id}/`
   "res_status": "INVALID_POST_EXCEPTION"
 }
 
-POST `/fb_post/create_comment/v1/`
+`POST /fb_post/create_comment/v1/`
 
 Request Body
 {
@@ -124,7 +127,7 @@ Request Body
 201 Response
 { "comment_id": 7 }
 
-POST `/fb_post/react_to_post/v1/`
+`POST /fb_post/react_to_post/v1/`
 
 Request Body
 {
@@ -136,9 +139,9 @@ Request Body
 200 Response (no body needed)
 {}
 
-DELETE `/fb_post/delete_post/v1/{post_id}/`
+`DELETE /fb_post/delete_post/v1/{post_id}/`
 
-The user_id of the requester should come from `kwargs['request_data']` or a query param — your choice. Respond 200 on success, 400 if user is not the creator.
+The `user_id` of the requester should come from `kwargs['request_data']` or a query param — your choice. Respond 200 on success, 400 if user is not the creator.
 
  - All five paths defined in `api_spec.json` with correct `operationId` values.
  - All request/response schemas are JSON Schema objects (type, properties, required).
@@ -148,17 +151,13 @@ The user_id of the requester should come from `kwargs['request_data']` or a quer
 Run the DSU build command for your app: `python manage.py build -a fb_post`
 
  - Verify that five folders are created under `fb_post/views/`, one per `operationId`.
- - Each folder should contain: `api_wrapper.py`, `<operation_id>.py`, `request_response_mocks.py`, `validator_class.py`,
-   `__init__.py`.
+ - Each folder should contain: `api_wrapper.py`, `<operation_id>.py`, `request_response_mocks.py`, `validator_class.py`, `__init__.py`.
  - Open each `__init__.py` and confirm it says `ENV_MOCK`(the default). Do not switch to `ENV_IMPL` yet.
- - Start the server and hit any of the five endpoints — DSU should return mock data (status 200 with stub values). This       confirms the spec + build pipeline is working.
-
- Tip: Use Swagger UI at `/swagger/` (or `/api/schema/swagger-ui/`) to browse and test your endpoints without writing any curl commands.
+ - Start the server and hit any of the five endpoints — DSU should return mock data (status 200 with stub values). This confirms the spec + build pipeline is working.
 
 
 # Phase 3 — Implement Each Endpoint
 For each of the five tasks below, the pattern is the same — write all four layers, then flip to `ENV_IMPL` and test.
-
 `api_wrapper.py` → `interactor` → `(storage + presenter)`
 
 *api_wrapper* reads `kwargs` and calls the interactor.
@@ -166,33 +165,32 @@ For each of the five tasks below, the pattern is the same — write all four lay
 *storage* talks to the database (Django ORM).
 *presenter* formats HTTP responses using `HTTPResponseMixin`.
 
+
 ## Task 5  - Implement `create_post`
 `api_wrapper.py` — reads `user_id` and `post_content` from `kwargs['request_data']`.
 
 *Interactor* — `CreatePostInteractor.execute(user_id, post_content, storage, presenter)`
-
-Calls `storage.validate_user(user_id)` — raises InvalidUserException if not found
-Calls `storage.validate_post_content(post_content)` — raises InvalidPostContent if empty
-Calls `storage.create_post(user_id, post_content)` → returns post_id
-Calls `presenter.raise_exception_for_invalid_user()` on InvalidUserException
-Calls `presenter.prepare_201_created_response({"post_id": post_id})` on success
+- Calls `storage.validate_user(user_id)` — raises `InvalidUserException` if not found
+- Calls `storage.validate_post_content(post_content)` — raises `InvalidPostContent` if empty
+- Calls `storage.create_post(user_id, post_content)` → returns `post_id`
+- Calls `presenter.raise_exception_for_invalid_user()` on `InvalidUserException`
+- Calls `presenter.prepare_201_created_response({"post_id": post_id})` on success
 
 *Storage* — `StorageImplementation`
-
-`validate_user(user_id)` — queries User.objects.filter(id=user_id).exists()
-`validate_post_content(post_content)` — checks if content is empty or whitespace-only
-`create_post(user_id, post_content)` — creates Post and returns its id
+- `validate_user(user_id)` — queries `User.objects.filter(id=user_id).exists()`
+- `validate_post_content(post_content)` — checks if content is empty or whitespace-only
+- `create_post(user_id, post_content)` — creates `Post` and returns its `id`
 
 *Presenter* — `JsonPresenter(PresenterInterface, HTTPResponseMixin)`
+- `raise_exception_for_invalid_user()` → `self.prepare_400_bad_request_response({...})`
+- Success is handled by calling `prepare_201_created_response` directly from the interactor.
 
-`raise_exception_for_invalid_user()` → `self.prepare_400_bad_request_response({...})`
-Success is handled by calling `prepare_201_created_response` directly from the interactor.
+Check points:-
+- All four layers implemented.
+- `__init__.py` switched to `ENV_IMPL`.
+- `POST /fb_post/create_post/v1/` returns `{"post_id": <n>}` with a valid `user_id`.
+- Returns 400 when `user_id` is invalid or `post_content` is empty.
 
-Check points :-
-All four layers implemented.
-`__init__.py` switched to `ENV_IMPL`.
-`POST /fb_post/create_post/v1/` returns `{"post_id": <n>}` with a valid `user_id`.
-Returns 400 when `user_id` is invalid or `post_content` is empty.
 
 ## Task 6 - Implement `get_post`
 `api_wrapper.py` — reads `post_id` from `kwargs['path_params']`.
@@ -207,12 +205,13 @@ Returns 400 when `user_id` is invalid or `post_content` is empty.
 - `get_post_details(post_id)` — returns a Python dict matching the response shape in Task 3. Build it using `select_related` / `prefetch_related` to avoid N+1 queries.
 
 *Presenter*
-`raise_exception_for_invalid_post()` → `self.prepare_404_not_found_response({...})`
+- `raise_exception_for_invalid_post()` → `self.prepare_404_not_found_response({...})`
 
 Check points:-
-Returns full post JSON (matching shape above) for a valid `post_id`.
-Returns 404 for an unknown `post_id`.
-No N+1 queries — use `prefetch_related("comment_set", "reaction_set")`.
+- Returns full post JSON (matching shape above) for a valid `post_id`.
+- Returns 404 for an unknown `post_id`.
+- No N+1 queries — use `prefetch_related("comment_set", "reaction_set")`.
+
 
 ## Task 7 - Implement `create_comment`
 `api_wrapper.py` — reads `user_id`, `post_id`, `comment_content` from `kwargs['request_data']`.
@@ -231,6 +230,7 @@ Check points:-
 - Returns 400 for invalid user, invalid post, or empty comment.
 
 Reuse tip: `validate_user` and `validate_post` were already written in Tasks 5–6. Pass the same `StorageImplementation` instance — don't duplicate the ORM logic.
+
 
 ## Task 8 - Implement `react_to_post`
 `api_wrapper.py` — reads `user_id`, `post_id`, `reaction_type` from `kwargs['request_data']`.
