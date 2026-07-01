@@ -78,7 +78,7 @@ SWAGGER_UTILS = {
     "APPS": {
         "posts": {"dsu_version": "1.0"},
         "users": {"dsu_version": "1.0"},
-        "fb_post" : {"prefix_url": "fb_post"},
+        "fb_post" : {"prefix_url": "fb_post", "dsu_version": "1.0"},
     },
     "HOST": os.environ.get('APIGATEWAY_ENDPOINT', '127.0.0.1:8000'),
 }

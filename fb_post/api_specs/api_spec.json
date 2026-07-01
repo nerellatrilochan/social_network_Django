@@ -1,45 +1,396 @@
 {
-        "swagger": "2.0",
-        "host": "127.0.0.1:8000",
-        "basePath": "/api/fb_post/",
-        "info": {
-            "version": "1.0.0",
-            "title": "Simple API",
-            "description": "A simple API to learn how to write OpenAPI Specification"
-        },
-        "schemes": [
-            "http"
-        ],
-        "consumes": [
-            "application/json"
-        ],
-        "produces": [
-            "application/json"
-        ],
-        "securityDefinitions": {
-            "oauth": {
-                "tokenUrl": "http://auth.ibtspl.com/oauth2/",
-                "flow": "password",
-                "scopes": {
-                    "read": "read users",
-                    "write": "create users",
-                    "update": "update users",
-                    "delete": "delete users"
-                },
-                "type": "oauth2"
-            }
-        },
-        "security": [],
-        "definitions": {
-
-        },
-        "parameters": {
-
-        },
-        "responses": {
-
-        },
-        "paths": {
-        }
+  "swagger": "2.0",
+  "host": "127.0.0.1:8000",
+  "basePath": "/api/fb_post/",
+  "info": {
+    "version": "1.0.0",
+    "title": "FB Post API",
+    "description": "Social Network - fb_post endpoints"
+  },
+  "schemes": ["http"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "securityDefinitions": {
+    "oauth": {
+      "tokenUrl": "http://auth.ibtspl.com/oauth2/",
+      "flow": "password",
+      "scopes": {
+        "read": "read users",
+        "write": "create users",
+        "update": "update users",
+        "delete": "delete users"
+      },
+      "type": "oauth2"
     }
-    
+  },
+  "security": [],
+  "definitions": {
+    "HttpResponseAndStatusCodeDefinition": {
+      "type": "object",
+      "properties": {
+        "response": { "type": "string" },
+        "http_status_code": { "type": "integer", "format": "int64" },
+        "res_status": { "type": "string" }
+      },
+      "required": ["response", "http_status_code", "res_status"]
+    },
+    "UserDetails": {
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "integer", "format": "int64" },
+        "name": { "type": "string" },
+        "profile_pic": { "type": "string" }
+      },
+      "required": ["user_id", "name", "profile_pic"]
+    },
+    "ReactionsSummary": {
+      "type": "object",
+      "properties": {
+        "count": { "type": "integer", "format": "int64" },
+        "type": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "WOW", "LIT", "LOVE", "HAHA",
+              "THUMBS-UP", "THUMBS-DOWN", "ANGRY", "SAD"
+            ]
+          }
+        }
+      },
+      "required": ["count", "type"]
+    },
+    "CommentDetails": {
+      "type": "object",
+      "properties": {
+        "comment_id": { "type": "integer", "format": "int64" },
+        "commenter": { "$ref": "#/definitions/UserDetails" },
+        "commented_at": { "type": "string" },
+        "comment_content": { "type": "string" },
+        "reactions": { "$ref": "#/definitions/ReactionsSummary" },
+        "replies_count": { "type": "integer", "format": "int64" },
+        "replies": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/CommentDetails" }
+        }
+      },
+      "required": [
+        "comment_id", "commenter", "commented_at", "comment_content",
+        "reactions", "replies_count", "replies"
+      ]
+    },
+    "GetPostResponse": {
+      "type": "object",
+      "properties": {
+        "post_id": { "type": "integer", "format": "int64" },
+        "posted_by": { "$ref": "#/definitions/UserDetails" },
+        "posted_at": { "type": "string" },
+        "post_content": { "type": "string" },
+        "reactions": { "$ref": "#/definitions/ReactionsSummary" },
+        "comments": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/CommentDetails" }
+        },
+        "comments_count": { "type": "integer", "format": "int64" }
+      },
+      "required": [
+        "post_id", "posted_by", "posted_at", "post_content",
+        "reactions", "comments", "comments_count"
+      ]
+    },
+    "CreatePostResponse": {
+      "type": "object",
+      "properties": {
+        "post_id": { "type": "integer", "format": "int64" }
+      },
+      "required": ["post_id"]
+    },
+    "CreateCommentResponse": {
+      "type": "object",
+      "properties": {
+        "comment_id": { "type": "integer", "format": "int64" }
+      },
+      "required": ["comment_id"]
+    }
+  },
+  "parameters": {
+    "PostIdPathParameter": {
+      "name": "post_id",
+      "in": "path",
+      "description": "Post ID",
+      "required": true,
+      "type": "integer",
+      "format": "int64"
+    },
+    "UserIdQueryParameter": {
+      "name": "user_id",
+      "in": "query",
+      "description": "User ID of the requester",
+      "required": true,
+      "type": "integer",
+      "format": "int64"
+    },
+    "CreatePostParameter": {
+      "name": "CreatePostParameter",
+      "description": "Create Post Request",
+      "in": "body",
+      "required": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "integer", "format": "int64" },
+          "post_content": { "type": "string" }
+        },
+        "required": ["user_id", "post_content"]
+      }
+    },
+    "CreateCommentParameter": {
+      "name": "CreateCommentParameter",
+      "description": "Create Comment Request",
+      "in": "body",
+      "required": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "integer", "format": "int64" },
+          "post_id": { "type": "integer", "format": "int64" },
+          "comment_content": { "type": "string" }
+        },
+        "required": ["user_id", "post_id", "comment_content"]
+      }
+    },
+    "ReactToPostParameter": {
+      "name": "ReactToPostParameter",
+      "description": "React To Post Request",
+      "in": "body",
+      "required": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "integer", "format": "int64" },
+          "post_id": { "type": "integer", "format": "int64" },
+          "reaction_type": {
+            "type": "string",
+            "enum": [
+              "WOW", "LIT", "LOVE", "HAHA",
+              "THUMBS-UP", "THUMBS-DOWN", "ANGRY", "SAD"
+            ]
+          }
+        },
+        "required": ["user_id", "post_id", "reaction_type"]
+      }
+    }
+  },
+  "responses": {
+    "CreatePostSuccessResponse": {
+      "description": "Post created successfully",
+      "schema": { "$ref": "#/definitions/CreatePostResponse" }
+    },
+    "CreatePostBadRequestResponse": {
+      "description": "Invalid user or empty post content",
+      "schema": {
+        "allOf": [
+          { "$ref": "#/definitions/HttpResponseAndStatusCodeDefinition" },
+          {
+            "type": "object",
+            "properties": {
+              "res_status": {
+                "type": "string",
+                "enum": ["INVALID_USER_EXCEPTION", "INVALID_POST_CONTENT"]
+              }
+            },
+            "required": ["res_status"]
+          }
+        ]
+      }
+    },
+    "GetPostSuccessResponse": {
+      "description": "Post details",
+      "schema": { "$ref": "#/definitions/GetPostResponse" }
+    },
+    "GetPostNotFoundResponse": {
+      "description": "Post not found",
+      "schema": {
+        "allOf": [
+          { "$ref": "#/definitions/HttpResponseAndStatusCodeDefinition" },
+          {
+            "type": "object",
+            "properties": {
+              "res_status": {
+                "type": "string",
+                "enum": ["INVALID_POST_EXCEPTION"]
+              }
+            },
+            "required": ["res_status"]
+          }
+        ]
+      }
+    },
+    "CreateCommentSuccessResponse": {
+      "description": "Comment created successfully",
+      "schema": { "$ref": "#/definitions/CreateCommentResponse" }
+    },
+    "CreateCommentBadRequestResponse": {
+      "description": "Invalid user, post, or empty comment content",
+      "schema": {
+        "allOf": [
+          { "$ref": "#/definitions/HttpResponseAndStatusCodeDefinition" },
+          {
+            "type": "object",
+            "properties": {
+              "res_status": {
+                "type": "string",
+                "enum": [
+                  "INVALID_USER_EXCEPTION",
+                  "INVALID_POST_EXCEPTION",
+                  "INVALID_COMMENT_CONTENT"
+                ]
+              }
+            },
+            "required": ["res_status"]
+          }
+        ]
+      }
+    },
+    "ReactToPostSuccessResponse": {
+      "description": "Reaction toggled successfully"
+    },
+    "ReactToPostBadRequestResponse": {
+      "description": "Invalid user, post, or reaction type",
+      "schema": {
+        "allOf": [
+          { "$ref": "#/definitions/HttpResponseAndStatusCodeDefinition" },
+          {
+            "type": "object",
+            "properties": {
+              "res_status": {
+                "type": "string",
+                "enum": [
+                  "INVALID_USER_EXCEPTION",
+                  "INVALID_POST_EXCEPTION",
+                  "INVALID_REACTION_TYPE_EXCEPTION"
+                ]
+              }
+            },
+            "required": ["res_status"]
+          }
+        ]
+      }
+    },
+    "DeletePostSuccessResponse": {
+      "description": "Post deleted successfully"
+    },
+    "DeletePostForbiddenResponse": {
+      "description": "User is not the post creator",
+      "schema": {
+        "allOf": [
+          { "$ref": "#/definitions/HttpResponseAndStatusCodeDefinition" },
+          {
+            "type": "object",
+            "properties": {
+              "res_status": {
+                "type": "string",
+                "enum": ["USER_CANNOT_DELETE_POST_EXCEPTION"]
+              }
+            },
+            "required": ["res_status"]
+          }
+        ]
+      }
+    },
+    "DeletePostBadRequestResponse": {
+      "description": "Invalid user or post",
+      "schema": {
+        "allOf": [
+          { "$ref": "#/definitions/HttpResponseAndStatusCodeDefinition" },
+          {
+            "type": "object",
+            "properties": {
+              "res_status": {
+                "type": "string",
+                "enum": ["INVALID_USER_EXCEPTION", "INVALID_POST_EXCEPTION"]
+              }
+            },
+            "required": ["res_status"]
+          }
+        ]
+      }
+    }
+  },
+  "paths": {
+    "/create_post/v1/": {
+      "post": {
+        "summary": "Create Post",
+        "description": "Creates a new post",
+        "operationId": "create_post",
+        "parameters": [
+          { "$ref": "#/parameters/CreatePostParameter" }
+        ],
+        "responses": {
+          "201": { "$ref": "#/responses/CreatePostSuccessResponse" },
+          "400": { "$ref": "#/responses/CreatePostBadRequestResponse" }
+        }
+      }
+    },
+    "/get_post/v1/{post_id}/": {
+      "parameters": [
+        { "$ref": "#/parameters/PostIdPathParameter" }
+      ],
+      "get": {
+        "summary": "Get Post",
+        "description": "Returns full post details with comments and reactions",
+        "operationId": "get_post",
+        "responses": {
+          "200": { "$ref": "#/responses/GetPostSuccessResponse" },
+          "404": { "$ref": "#/responses/GetPostNotFoundResponse" }
+        }
+      }
+    },
+    "/create_comment/v1/": {
+      "post": {
+        "summary": "Create Comment",
+        "description": "Creates a comment on a post",
+        "operationId": "create_comment",
+        "parameters": [
+          { "$ref": "#/parameters/CreateCommentParameter" }
+        ],
+        "responses": {
+          "201": { "$ref": "#/responses/CreateCommentSuccessResponse" },
+          "400": { "$ref": "#/responses/CreateCommentBadRequestResponse" }
+        }
+      }
+    },
+    "/react_to_post/v1/": {
+      "post": {
+        "summary": "React To Post",
+        "description": "Toggle reaction on a post",
+        "operationId": "react_to_post",
+        "parameters": [
+          { "$ref": "#/parameters/ReactToPostParameter" }
+        ],
+        "responses": {
+          "200": { "$ref": "#/responses/ReactToPostSuccessResponse" },
+          "400": { "$ref": "#/responses/ReactToPostBadRequestResponse" }
+        }
+      }
+    },
+    "/delete_post/v1/{post_id}/": {
+      "parameters": [
+        { "$ref": "#/parameters/PostIdPathParameter" }
+      ],
+      "delete": {
+        "summary": "Delete Post",
+        "description": "Deletes a post and cascades related data",
+        "operationId": "delete_post",
+        "parameters": [
+          { "$ref": "#/parameters/UserIdQueryParameter" }
+        ],
+        "responses": {
+          "200": { "$ref": "#/responses/DeletePostSuccessResponse" },
+          "400": { "$ref": "#/responses/DeletePostBadRequestResponse" },
+          "403": { "$ref": "#/responses/DeletePostForbiddenResponse" }
+        }
+      }
+    }
+  }
+}

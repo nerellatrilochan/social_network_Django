@@ -152,8 +152,125 @@ Run the DSU build command for your app: `python manage.py build -a fb_post`
    `__init__.py`.
  - Open each `__init__.py` and confirm it says `ENV_MOCK`(the default). Do not switch to `ENV_IMPL` yet.
  - Start the server and hit any of the five endpoints — DSU should return mock data (status 200 with stub values). This       confirms the spec + build pipeline is working.
+
  Tip: Use Swagger UI at `/swagger/` (or `/api/schema/swagger-ui/`) to browse and test your endpoints without writing any curl commands.
 
 
- 
+# Phase 3 — Implement Each Endpoint
+For each of the five tasks below, the pattern is the same — write all four layers, then flip to `ENV_IMPL` and test.
+
+`api_wrapper.py` → `interactor` → `(storage + presenter)`
+
+*api_wrapper* reads `kwargs` and calls the interactor.
+*interactor* contains business logic, calls storage and presenter interfaces.
+*storage* talks to the database (Django ORM).
+*presenter* formats HTTP responses using `HTTPResponseMixin`.
+
+## Task 5  - Implement `create_post`
+`api_wrapper.py` — reads `user_id` and `post_content` from `kwargs['request_data']`.
+
+*Interactor* — `CreatePostInteractor.execute(user_id, post_content, storage, presenter)`
+
+Calls `storage.validate_user(user_id)` — raises InvalidUserException if not found
+Calls `storage.validate_post_content(post_content)` — raises InvalidPostContent if empty
+Calls `storage.create_post(user_id, post_content)` → returns post_id
+Calls `presenter.raise_exception_for_invalid_user()` on InvalidUserException
+Calls `presenter.prepare_201_created_response({"post_id": post_id})` on success
+
+*Storage* — `StorageImplementation`
+
+`validate_user(user_id)` — queries User.objects.filter(id=user_id).exists()
+`validate_post_content(post_content)` — checks if content is empty or whitespace-only
+`create_post(user_id, post_content)` — creates Post and returns its id
+
+*Presenter* — `JsonPresenter(PresenterInterface, HTTPResponseMixin)`
+
+`raise_exception_for_invalid_user()` → `self.prepare_400_bad_request_response({...})`
+Success is handled by calling `prepare_201_created_response` directly from the interactor.
+
+Check points :-
+All four layers implemented.
+`__init__.py` switched to `ENV_IMPL`.
+`POST /fb_post/create_post/v1/` returns `{"post_id": <n>}` with a valid `user_id`.
+Returns 400 when `user_id` is invalid or `post_content` is empty.
+
+## Task 6 - Implement `get_post`
+`api_wrapper.py` — reads `post_id` from `kwargs['path_params']`.
+
+*Interactor* — `GetPostInteractor.execute(post_id, storage, presenter)`
+- Validates the post exists via storage; raises `InvalidPostException` if not.
+- Fetches the full post detail (comments, reactions, replies) via storage.
+- Returns the assembled dict through `presenter.prepare_200_success_response(post_dict)`.
+
+*Storage*
+- `validate_post(post_id)`
+- `get_post_details(post_id)` — returns a Python dict matching the response shape in Task 3. Build it using `select_related` / `prefetch_related` to avoid N+1 queries.
+
+*Presenter*
+`raise_exception_for_invalid_post()` → `self.prepare_404_not_found_response({...})`
+
+Check points:-
+Returns full post JSON (matching shape above) for a valid `post_id`.
+Returns 404 for an unknown `post_id`.
+No N+1 queries — use `prefetch_related("comment_set", "reaction_set")`.
+
+## Task 7 - Implement `create_comment`
+`api_wrapper.py` — reads `user_id`, `post_id`, `comment_content` from `kwargs['request_data']`.
+
+*Interactor* — `CreateCommentInteractor.execute(user_id, post_id, comment_content, storage, presenter)`
+- Validates user, post, and comment content in that order.
+- Raises the appropriate exception for the first failure found.
+- Creates the comment and returns `{"comment_id": <n>}`.
+
+*Storage*
+- Reuse `validate_user` and `validate_post` from the previous tasks.
+- Add `validate_comment_content(content)` and `create_comment(user_id, post_id, content)`.
+
+Check points:-
+- Returns `{"comment_id": <n>}` on success.
+- Returns 400 for invalid user, invalid post, or empty comment.
+
+Reuse tip: `validate_user` and `validate_post` were already written in Tasks 5–6. Pass the same `StorageImplementation` instance — don't duplicate the ORM logic.
+
+## Task 8 - Implement `react_to_post`
+`api_wrapper.py` — reads `user_id`, `post_id`, `reaction_type` from `kwargs['request_data']`.
+
+*Toggle logic (from Assignment 006 — Task 5):*
+- No existing reaction → create one.
+- Same reaction type already exists → delete it (un-react).
+- Different reaction type → update existing reaction and refresh reacted_at.
+
+*Interactor* — `ReactToPostInteractor.execute(user_id, post_id, reaction_type, storage, presenter)`
+- Validate user, post, and reaction type (check against the constants enum).
+- Delegate toggle logic to the storage layer.
+- Return a 200 empty response on success.
+
+*Storage*
+- `validate_reaction_type(reaction_type)` — compare against the ReactionType enum values.
+- `react_to_post(user_id, post_id, reaction_type)` — contains the toggle logic.
+
+Check points:-
+- First reaction creates a row; second reaction with same type deletes it; different type updates it.
+- Returns 400 for invalid user, post, or reaction type
+
+## Task 9 - Implement `delete_post`
+`api_wrapper.py` — reads `post_id` from `kwargs['path_params']` and `user_id` from `kwargs['request_data']` (or query params).
+
+*Interactor* — `DeletePostInteractor.execute(user_id, post_id, storage, presenter)`
+- Validate user exists.
+- Validate post exists.
+- Check `post.posted_by_id == user_id`; if not, `raise UserCannotDeletePostException`.
+- Call `storage.delete_post(post_id)` — Django cascades will remove comments and reactions if `on_delete=CASCADE` is set.
+- Return 200 on success.
+
+*Presenter*
+- Add `raise_exception_for_user_cannot_delete_post()` → `self.prepare_400_bad_request_response({...})`.
+
+Check points:-
+- Post creator can delete their own post — returns 200.
+- Non-creator gets 400 with `res_status: "USER_CANNOT_DELETE_POST"`.
+- Comments and reactions on the post are also deleted (verify in the DB).
+
+
+
 
