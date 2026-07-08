@@ -28,6 +28,9 @@ class StorageImplementation(PostStorageInterface):
     def does_user_exist(self, user_id: int) -> bool:
         return User.objects.filter(id=user_id).exists()
 
+    def does_post_exist(self, post_id: int) -> bool:
+        return Post.objects.filter(id=post_id).exists()
+
     def validate_user(self, user_id):
         if not User.objects.filter(id=user_id).exists():
             raise InvalidUserException
@@ -53,7 +56,12 @@ class StorageImplementation(PostStorageInterface):
         post = Post.objects.create(posted_by_id=user_id, content=post_content)
         return post.id
 
-    def create_comment(self, user_id, post_id, comment_content):
+    def create_comment(
+        self,
+        user_id: int,
+        post_id: int,
+        comment_content: str,
+    ) -> int:
         comment = Comment.objects.create(
             commented_by_id=user_id,
             post_id=post_id,

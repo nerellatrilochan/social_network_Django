@@ -10,7 +10,20 @@ class PostStorageInterface:
         pass
 
     @abc.abstractmethod
+    def does_post_exist(self, post_id: int) -> bool:
+        pass
+
+    @abc.abstractmethod
     def create_post(self, user_id: int, post_content: str) -> int:
+        pass
+
+    @abc.abstractmethod
+    def create_comment(
+        self,
+        user_id: int,
+        post_id: int,
+        comment_content: str,
+    ) -> int:
         pass
 
     @abc.abstractmethod
