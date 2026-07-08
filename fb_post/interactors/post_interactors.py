@@ -1,26 +1,8 @@
 from fb_post.exceptions.custom_exceptions import (
     InvalidPostException,
-    InvalidReactionTypeException,
     InvalidUserException,
     UserCannotDeletePostException,
 )
-
-
-class ReactToPostInteractor:
-    def execute(self, user_id, post_id, reaction_type, storage, presenter):
-        try:
-            storage.validate_user(user_id)
-            storage.validate_post(post_id)
-            storage.validate_reaction_type(reaction_type)
-            storage.react_to_post(user_id, post_id, reaction_type)
-        except InvalidUserException:
-            return presenter.raise_exception_for_invalid_user()
-        except InvalidPostException:
-            return presenter.raise_exception_for_invalid_post_bad_request()
-        except InvalidReactionTypeException:
-            return presenter.raise_exception_for_invalid_reaction_type()
-
-        return presenter.prepare_200_success_response({})
 
 
 class DeletePostInteractor:

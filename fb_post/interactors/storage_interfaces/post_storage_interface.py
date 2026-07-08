@@ -27,5 +27,14 @@ class PostStorageInterface:
         pass
 
     @abc.abstractmethod
+    def react_to_post(
+        self,
+        user_id: int,
+        post_id: int,
+        reaction_type: str,
+    ) -> None:
+        pass
+
+    @abc.abstractmethod
     def get_post_details(self, post_id: int) -> PostDetailsDTO:
         pass

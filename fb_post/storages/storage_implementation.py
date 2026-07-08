@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+from django.db import transaction
 from django.db.models import Prefetch
 
 from fb_post.constants.enum import ReactionTypeEnum
@@ -48,7 +49,7 @@ class StorageImplementation(PostStorageInterface):
             raise InvalidCommentContent
 
     def validate_reaction_type(self, reaction_type):
-        valid_reactions = [reaction.value for reaction in ReactionTypeEnum]
+        valid_reactions = ReactionTypeEnum.get_list_of_values()
         if reaction_type not in valid_reactions:
             raise InvalidReactionTypeException
 
@@ -69,27 +70,37 @@ class StorageImplementation(PostStorageInterface):
         )
         return comment.id
 
-    def react_to_post(self, user_id, post_id, reaction_type):
-        reaction = Reaction.objects.filter(
-            reacted_by_id=user_id,
-            post_id=post_id,
-            comment__isnull=True,
-        ).first()
-
-        if reaction is None:
-            Reaction.objects.create(
-                reacted_by_id=user_id,
-                post_id=post_id,
-                reaction=reaction_type,
+    def react_to_post(
+        self,
+        user_id: int,
+        post_id: int,
+        reaction_type: str,
+    ) -> None:
+        with transaction.atomic():
+            reaction = (
+                Reaction.objects.select_for_update()
+                .filter(
+                    reacted_by_id=user_id,
+                    post_id=post_id,
+                    comment__isnull=True,
+                )
+                .first()
             )
-            return
 
-        if reaction.reaction == reaction_type:
-            reaction.delete()
-            return
+            if reaction is None:
+                Reaction.objects.create(
+                    reacted_by_id=user_id,
+                    post_id=post_id,
+                    reaction=reaction_type,
+                )
+                return
 
-        reaction.reaction = reaction_type
-        reaction.save(update_fields=["reaction", "reacted_at"])
+            if reaction.reaction == reaction_type:
+                reaction.delete()
+                return
+
+            reaction.reaction = reaction_type
+            reaction.save(update_fields=["reaction", "reacted_at"])
 
     def validate_user_can_delete_post(self, user_id, post_id):
         post = Post.objects.get(id=post_id)

@@ -26,5 +26,14 @@ class Reaction(models.Model):
     reacted_at = models.DateTimeField(auto_now=True)
     reacted_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["reacted_by", "post"],
+                condition=models.Q(comment__isnull=True),
+                name="unique_post_reaction_per_user",
+            ),
+        ]
+
     def __str__(self):
         return f"<Reaction: {self.id}>"
