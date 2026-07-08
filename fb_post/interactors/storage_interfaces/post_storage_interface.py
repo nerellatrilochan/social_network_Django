@@ -1,5 +1,7 @@
 import abc
 
+from fb_post.interactors.storage_interfaces.dtos import PostDetailsDTO
+
 
 class PostStorageInterface:
 
@@ -9,4 +11,8 @@ class PostStorageInterface:
 
     @abc.abstractmethod
     def create_post(self, user_id: int, post_content: str) -> int:
+        pass
+
+    @abc.abstractmethod
+    def get_post_details(self, post_id: int) -> PostDetailsDTO:
         pass

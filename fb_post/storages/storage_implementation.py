@@ -1,4 +1,3 @@
-# fb_post/storages/storage_implementation.py
 from collections import defaultdict
 
 from django.db.models import Prefetch
@@ -11,6 +10,12 @@ from fb_post.exceptions.custom_exceptions import (
     InvalidReactionTypeException,
     InvalidUserException,
     UserCannotDeletePostException,
+)
+from fb_post.interactors.storage_interfaces.dtos import (
+    CommentDetailsDTO,
+    PostDetailsDTO,
+    ReactionsSummaryDTO,
+    UserDetailsDTO,
 )
 from fb_post.interactors.storage_interfaces.post_storage_interface import (
     PostStorageInterface,
@@ -86,63 +91,74 @@ class StorageImplementation(PostStorageInterface):
     def delete_post(self, post_id):
         Post.objects.get(id=post_id).delete()
 
-    def get_post_details(self, post_id):
+    def get_post_details(self, post_id: int) -> PostDetailsDTO:
         comments_queryset = (
             Comment.objects.select_related("commented_by", "parent_comment")
             .prefetch_related("reaction_set")
             .order_by("commented_at")
         )
 
-        post = (
-            Post.objects.select_related("posted_by")
-            .prefetch_related(
-                "reaction_set",
-                Prefetch("comment_set", queryset=comments_queryset),
+        try:
+            post = (
+                Post.objects.select_related("posted_by")
+                .prefetch_related(
+                    "reaction_set",
+                    Prefetch("comment_set", queryset=comments_queryset),
+                )
+                .get(id=post_id)
             )
-            .get(id=post_id)
-        )
+        except Post.DoesNotExist:
+            raise InvalidPostException
 
         comments = list(post.comment_set.all())
         children_by_parent_id = defaultdict(list)
         for comment in comments:
             children_by_parent_id[comment.parent_comment_id].append(comment)
 
-        def get_user_details(user):
-            return {
-                "user_id": user.id,
-                "name": user.name,
-                "profile_pic": user.profile_pic,
-            }
-
-        def get_reactions_summary(reactions):
-            reaction_list = list(reactions)
-            return {
-                "count": len(reaction_list),
-                "type": sorted({reaction.reaction for reaction in reaction_list}),
-            }
-
-        def get_comment_details(comment):
-            replies = children_by_parent_id[comment.id]
-            return {
-                "comment_id": comment.id,
-                "commenter": get_user_details(comment.commented_by),
-                "commented_at": comment.commented_at.strftime("%Y-%m-%d %H:%M:%S"),
-                "comment_content": comment.content,
-                "reactions": get_reactions_summary(comment.reaction_set.all()),
-                "replies_count": len(replies),
-                "replies": [get_comment_details(reply) for reply in replies],
-            }
-
         top_level_comments = children_by_parent_id[None]
 
-        return {
-            "post_id": post.id,
-            "posted_by": get_user_details(post.posted_by),
-            "posted_at": post.posted_at.strftime("%Y-%m-%d %H:%M:%S"),
-            "post_content": post.content,
-            "reactions": get_reactions_summary(post.reaction_set.all()),
-            "comments": [
-                get_comment_details(comment) for comment in top_level_comments
+        return PostDetailsDTO(
+            post_id=post.id,
+            posted_by=self._to_user_details_dto(post.posted_by),
+            posted_at=post.posted_at,
+            post_content=post.content,
+            reactions=self._to_reactions_summary_dto(post.reaction_set.all()),
+            comments=[
+                self._to_comment_details_dto(comment, children_by_parent_id)
+                for comment in top_level_comments
             ],
-            "comments_count": len(comments),
-        }
+            comments_count=len(comments),
+        )
+
+    @staticmethod
+    def _to_user_details_dto(user) -> UserDetailsDTO:
+        return UserDetailsDTO(
+            user_id=user.id,
+            name=user.name,
+            profile_pic=user.profile_pic,
+        )
+
+    @staticmethod
+    def _to_reactions_summary_dto(reactions) -> ReactionsSummaryDTO:
+        reaction_list = list(reactions)
+        return ReactionsSummaryDTO(
+            count=len(reaction_list),
+            type=sorted({reaction.reaction for reaction in reaction_list}),
+        )
+
+    def _to_comment_details_dto(
+        self, comment, children_by_parent_id,
+    ) -> CommentDetailsDTO:
+        replies = children_by_parent_id[comment.id]
+        return CommentDetailsDTO(
+            comment_id=comment.id,
+            commenter=self._to_user_details_dto(comment.commented_by),
+            commented_at=comment.commented_at,
+            comment_content=comment.content,
+            reactions=self._to_reactions_summary_dto(comment.reaction_set.all()),
+            replies_count=len(replies),
+            replies=[
+                self._to_comment_details_dto(reply, children_by_parent_id)
+                for reply in replies
+            ],
+        )

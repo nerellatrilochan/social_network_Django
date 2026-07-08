@@ -1,3 +1,5 @@
 INVALID_USER = ("Invalid user", "INVALID_USER_EXCEPTION",)
 
 INVALID_POST_CONTENT = ("Invalid post content", "INVALID_POST_CONTENT",)
+
+INVALID_POST = ("Post not found", "INVALID_POST_EXCEPTION",)
