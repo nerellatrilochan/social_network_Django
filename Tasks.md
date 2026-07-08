@@ -273,4 +273,15 @@ Check points:-
 
 
 
+# Wrap Up
+
+## Self-Check
+Before you consider this assignment complete, verify:
+
+- All five endpoints return correct data when hit with valid inputs via Swagger UI.
+- Every error case returns the correct HTTP status code and the three-field error body.
+- `get_post` doesn't trigger an N+1 query (check Django debug toolbar or manually count SQL logs).
+- `api_wrapper.py` contains no ORM calls — it only reads `kwargs` and delegates.
+- Interactor has no ORM calls — it calls `storage.*` methods only.
+- Presenter has no business logic — it only formats HTTP responses.
 

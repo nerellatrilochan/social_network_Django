@@ -12,10 +12,17 @@ from fb_post.exceptions.custom_exceptions import (
     InvalidUserException,
     UserCannotDeletePostException,
 )
+from fb_post.interactors.storage_interfaces.post_storage_interface import (
+    PostStorageInterface,
+)
 from fb_post.models import Comment, Post, Reaction, User
 
 
-class StorageImplementation:
+class StorageImplementation(PostStorageInterface):
+
+    def does_user_exist(self, user_id: int) -> bool:
+        return User.objects.filter(id=user_id).exists()
+
     def validate_user(self, user_id):
         if not User.objects.filter(id=user_id).exists():
             raise InvalidUserException
@@ -37,7 +44,7 @@ class StorageImplementation:
         if reaction_type not in valid_reactions:
             raise InvalidReactionTypeException
 
-    def create_post(self, user_id, post_content):
+    def create_post(self, user_id: int, post_content: str) -> int:
         post = Post.objects.create(posted_by_id=user_id, content=post_content)
         return post.id
 

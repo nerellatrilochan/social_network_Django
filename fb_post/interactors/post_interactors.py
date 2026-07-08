@@ -1,26 +1,11 @@
 # fb_post/interactors/post_interactors.py
 from fb_post.exceptions.custom_exceptions import (
     InvalidCommentContent,
-    InvalidPostContent,
     InvalidPostException,
     InvalidReactionTypeException,
     InvalidUserException,
     UserCannotDeletePostException,
 )
-
-
-class CreatePostInteractor:
-    def execute(self, user_id, post_content, storage, presenter):
-        try:
-            storage.validate_user(user_id)
-            storage.validate_post_content(post_content)
-            post_id = storage.create_post(user_id, post_content)
-        except InvalidUserException:
-            return presenter.raise_exception_for_invalid_user()
-        except InvalidPostContent:
-            return presenter.raise_exception_for_invalid_post_content()
-
-        return presenter.prepare_201_created_response({"post_id": post_id})
 
 
 class GetPostInteractor:
