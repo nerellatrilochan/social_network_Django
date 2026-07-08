@@ -10,7 +10,6 @@ from fb_post.exceptions.custom_exceptions import (
     InvalidPostException,
     InvalidReactionTypeException,
     InvalidUserException,
-    UserCannotDeletePostException,
 )
 from fb_post.interactors.storage_interfaces.dtos import (
     CommentDetailsDTO,
@@ -102,13 +101,16 @@ class StorageImplementation(PostStorageInterface):
             reaction.reaction = reaction_type
             reaction.save(update_fields=["reaction", "reacted_at"])
 
-    def validate_user_can_delete_post(self, user_id, post_id):
-        post = Post.objects.get(id=post_id)
-        if post.posted_by_id != int(user_id):
-            raise UserCannotDeletePostException
+    def get_post_owner_id(self, post_id: int) -> int:
+        try:
+            return Post.objects.values_list(
+                "posted_by_id", flat=True,
+            ).get(id=post_id)
+        except Post.DoesNotExist:
+            raise InvalidPostException
 
-    def delete_post(self, post_id):
-        Post.objects.get(id=post_id).delete()
+    def delete_post(self, post_id: int) -> None:
+        Post.objects.filter(id=post_id).delete()
 
     def get_post_details(self, post_id: int) -> PostDetailsDTO:
         comments_queryset = (

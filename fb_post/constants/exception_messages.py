@@ -12,3 +12,8 @@ INVALID_REACTION_TYPE = (
     "Invalid reaction type",
     "INVALID_REACTION_TYPE_EXCEPTION",
 )
+
+USER_CANNOT_DELETE_POST = (
+    "User cannot delete post",
+    "USER_CANNOT_DELETE_POST_EXCEPTION",
+)

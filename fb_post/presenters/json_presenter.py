@@ -43,10 +43,3 @@ class JsonPresenter(HTTPResponseMixin):
             "http_status_code": 400,
             "res_status": "INVALID_REACTION_TYPE_EXCEPTION",
         })
-
-    def raise_exception_for_user_cannot_delete_post(self):
-        return self.prepare_403_forbidden_response({
-            "response": "User cannot delete post",
-            "http_status_code": 403,
-            "res_status": "USER_CANNOT_DELETE_POST_EXCEPTION",
-        })

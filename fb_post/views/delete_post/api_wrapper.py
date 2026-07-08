@@ -1,23 +1,26 @@
-# fb_post/views/delete_post/api_wrapper.py
 from dsu.dsu_gen.openapi.decorator.interface_decorator import validate_decorator
 
-from .validator_class import ValidatorClass
+from fb_post.views.delete_post.validator_class import ValidatorClass
 
 
 @validate_decorator(validator_class=ValidatorClass)
 def api_wrapper(*args, **kwargs):
-    from fb_post.interactors.post_interactors import DeletePostInteractor
-    from fb_post.presenters.json_presenter import JsonPresenter
+    from fb_post.interactors.delete_post_interactor import DeletePostInteractor
+    from fb_post.presenters.delete_post_presenter_implementation import (
+        DeletePostPresenterImplementation,
+    )
     from fb_post.storages.storage_implementation import StorageImplementation
 
     post_id = kwargs["path_params"]["post_id"]
-    request_data = kwargs.get("request_data") or {}
-    query_params = kwargs.get("query_params") or {}
-    user_id = request_data.get("user_id") or query_params["user_id"]
+    query_params = kwargs["query_params"]
+    user_id = query_params["user_id"]
 
-    return DeletePostInteractor().execute(
+    post_storage = StorageImplementation()
+    interactor = DeletePostInteractor(post_storage=post_storage)
+    presenter = DeletePostPresenterImplementation()
+
+    return interactor.delete_post_wrapper(
         user_id=user_id,
         post_id=post_id,
-        storage=StorageImplementation(),
-        presenter=JsonPresenter(),
+        presenter=presenter,
     )

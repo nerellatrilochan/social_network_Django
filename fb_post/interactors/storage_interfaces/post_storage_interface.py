@@ -36,5 +36,13 @@ class PostStorageInterface:
         pass
 
     @abc.abstractmethod
+    def get_post_owner_id(self, post_id: int) -> int:
+        pass
+
+    @abc.abstractmethod
+    def delete_post(self, post_id: int) -> None:
+        pass
+
+    @abc.abstractmethod
     def get_post_details(self, post_id: int) -> PostDetailsDTO:
         pass
