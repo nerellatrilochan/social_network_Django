@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "social-network": {
+      "command": "poetry",
+      "args": [
+        "run",
+        "python",
+        "-m",
+        "social_network_mcp",
+        "--transport",
+        "stdio"
+      ],
+      "env": {
+        "DJANGO_SETTINGS_MODULE": "social_network.settings.local",
+        "MCP_TRANSPORT": "stdio",
+        "MCP_REQUIRE_AUTH": "false"
+      }
+    }
+  }
+}
